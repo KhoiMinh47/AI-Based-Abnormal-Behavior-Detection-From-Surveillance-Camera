@@ -1,3 +1,5 @@
+# Download Code and Dataset in the file txt
+
 # AI-Based Abnormal Behavior Detection from Surveillance Cameras
 
 This project builds an AI surveillance pipeline for abnormal event detection from CCTV footage. It combines object detection, pose estimation, action recognition, and a lightweight web dashboard to detect three main risky events:
