@@ -187,7 +187,7 @@ Before moving to the run steps below, make sure:
 
 ### Run the Project
 
-### Requirements
+#### Requirements
 
 - Python 3.9+ recommended
 - `pip`
@@ -248,70 +248,15 @@ http://localhost:5000
 
 ## Demo
 
-After the app is running, you can upload a surveillance video, wait for processing, review alerts on the dashboard, and download the processed output video.
+After the app is running, users can upload a surveillance video, wait for processing, review alerts on the dashboard, and download the processed output video.
 
-Add your demo GIF right below this section for GitHub display. A common layout is:
+Project dashboard preview:
 
-```md
-## Demo
+![AI Vision Dashboard](docs/images/dashboard-demo.png)
 
-![Project Demo](docs/images/demo.gif)
-```
+Save the screenshot you shared as:
 
-If you want to show screenshots too, you can add:
-
-```md
-![Dashboard](docs/images/dashboard.png)
-```
-
-Recommended files to add:
-
-- `docs/images/demo.gif`
-- `docs/images/dashboard.png`
-- `docs/images/sample-fire.png`
-- `docs/images/sample-fall.png`
-
-## API Notes
-
-Important endpoints from the Flask app:
-
-- `POST /api/upload-video` to upload and process a video
-- `GET /api/processing-status/<job_id>` to poll processing progress
-- `GET /api/download-video/<job_id>` to download the processed video
-- `GET /api/alerts` to retrieve generated alerts
-- `GET /api/statistics` to retrieve dashboard statistics
-
-## Current Tech Stack
-
-- Python
-- Flask
-- PyTorch
-- PyTorchVideo
-- Ultralytics YOLO
-- OpenCV
-- NumPy
-- HTML/CSS/JavaScript
-
-## Limitations
-
-- The dashboard stores job state in memory, so restarting the app clears active jobs.
-- Some statistics in the dashboard are mock/generated for visualization.
-- Real-world performance depends heavily on camera angle, lighting, and video quality.
-- The project currently focuses on `fire`, `fall`, and `fighting` even though some placeholder labels appear in the UI/backend.
-
-## Future Improvements
-
-- Replace in-memory job management with a database or task queue
-- Add user authentication and persistent alert history
-- Improve model calibration to further reduce false positives
-- Add real-time RTSP camera stream support
-- Expand the abnormal action taxonomy
-
-## Reference Files
-
-- `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
-- `Present_Order.pdf`
-- `Slide_Presentation.pdf`
+- `docs/images/dashboard-demo.png`
 
 ## License
 
