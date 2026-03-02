@@ -246,18 +246,5 @@ Visit:
 http://localhost:5000
 ```
 
-## Demo
 
-After the app is running, users can upload a surveillance video, wait for processing, review alerts on the dashboard, and download the processed output video.
 
-Dashboard screenshot can be added after you upload the image file to the repository.
-
-Recommended image path:
-
-- `docs/images/dashboard-demo.png`
-
-Then add this line back under the `Demo` section:
-
-```md
-![AI Vision Dashboard](docs/images/dashboard-demo.png)
-```
