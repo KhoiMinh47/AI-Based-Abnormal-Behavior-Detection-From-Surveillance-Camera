@@ -8,8 +8,6 @@ This repository contains the packaged deliverables for the FPT University capsto
 
 The system is described in detail in the project report `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`, and the deliverables are distributed mainly as root-level `.zip` packages. This README is written from that report and is intended to be detailed enough for GitHub readers, evaluators, and collaborators who want to understand both the research direction and the packaged project artifacts.
 
-All figures used by this README are stored locally in `assets/readme/` so the images render correctly on GitHub without depending on external links.
-
 ## Executive summary
 
 Modern surveillance systems generate a large amount of video, but manual monitoring is expensive, tiring, and easy to miss important events. This capstone proposes a hybrid AI pipeline that combines fast detection with deeper spatio-temporal reasoning:
@@ -111,7 +109,6 @@ This project is currently organized primarily around packaged deliverables in th
 | File | Purpose |
 |---|---|
 | `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf` | Full capstone report with methodology, experiments, results, limitations, and references |
-| `assets/readme/` | Local image assets used by this README, including report figures and demo screenshots |
 | `CodeApp.zip` | Deployable Flask application, runtime pipeline, static assets, templates, checkpoints, and test videos |
 | `CodeTrain.zip` | Training notebooks, training outputs, logs, result plots, and saved experiment artifacts |
 | `checkpointsmodel.zip` | Packaged trained model weights for deployment |
@@ -179,16 +176,6 @@ This is the full bundled submission package. It contains:
 - `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
 
 This file is the easiest way to preserve the entire capstone handoff in a single archive.
-
-### README image asset folder
-
-The folder `assets/readme/` contains the figures referenced throughout this README. It includes:
-
-- architecture figures exported from the report
-- training and evaluation plots
-- confusion matrices
-- qualitative success/failure cases
-- dashboard and detection screenshots for GitHub presentation
 
 ## Experimental setup from the report
 
