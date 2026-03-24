@@ -1,0 +1,24 @@
+# Requirements for GPU-enabled PyTorch
+# Uninstall CPU version first, then install GPU version
+
+# For CUDA 11.8 (most compatible)
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+
+# For CUDA 12.1 (if you have newer GPU)
+# --extra-index-url https://download.pytorch.org/whl/cu121
+# torch==2.0.1+cu121
+# torchvision==0.15.2+cu121
+
+# Other dependencies remain the same
+Flask==2.3.3
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+Werkzeug==2.3.7
+ultralytics>=8.3.0
+opencv-python==4.8.1.78
+numpy==1.24.3
+imageio==2.33.1
+imageio-ffmpeg==0.4.9
+pytorchvideo==0.1.5
