@@ -40,31 +40,38 @@ The full academic report is available here: [AI_Based_Abnormal_Behavior_Detectio
 |---|---|---|
 | ![Fall demo](asset/readme/demo/fall-demo.png) | ![Fire demo](asset/readme/demo/fire-demo.png) | ![Fighting demo](asset/readme/demo/fighting-demo.png) |
 
-## System Architecture
+## Pipeline Overview
 
 ```mermaid
 flowchart LR
-    A["Input Surveillance Video"] --> B["YOLOv11 Person Detection"]
-    A --> C["YOLOv11 Fire Detection"]
-    B --> D["Tracking + Clip Buffer"]
-    D --> E["YOLOv11 Pose Estimation"]
-    D --> F["SlowFast + Pose Action Classifier"]
-    C --> G["Fire ROI Verification (CNN)"]
-    F --> H["Temporal Smoothing + Alert Aggregation"]
+    A["Input Surveillance Video"] --> B["YOLOv11 Person and Fire Detection"]
+    B --> C["Fire ROI Extraction and Verification"]
+    B --> D["Person-Based Abnormality Triggers"]
+    D --> E["Clip Generation and Buffering"]
+    E --> F["Dual-Pathway Feature Extraction (SlowFast)"]
+    E --> G["YOLOv11 Pose Estimation"]
+    F --> H["Clip-Level Classification Head"]
     G --> H
-    H --> I["Annotated Output Video"]
-    H --> J["JSON Alerts + Dashboard Analytics"]
+    C --> I["Integration with the Fire Branch"]
+    H --> I
+    I --> J["Temporal Smoothing and Persistence"]
+    J --> K["Post-Processing and Visualization"]
+    K --> L["Annotated Video + JSON Alerts + Dashboard"]
 ```
 
-### Runtime pipeline
+The pipeline below is aligned with the methodology and inference structure described in the PDF report, especially the sections on technical objectives, clip generation and buffering, spatio-temporal modeling, post-processing, and inference deployment.
 
-1. Detect people and fire regions from each frame.
-2. Track person instances over time.
-3. Extract human pose keypoints for tracked people.
-4. Build temporal clips and classify actions with the SlowFast + Pose branch.
-5. Verify suspicious fire regions with the CNN branch when available.
-6. Apply temporal smoothing and persistence logic.
-7. Save the annotated video and generated alerts for dashboard visualization.
+### Pipeline steps from the report
+
+1. `YOLOv11 person and fire detection`: detect candidate human and fire regions from each input frame.
+2. `Fire ROI extraction and verification`: crop suspicious fire regions and validate them through the dedicated CNN verification branch.
+3. `Person-based abnormality triggers`: use tracked person detections to identify candidate abnormal-action segments.
+4. `Clip generation and buffering`: build trigger-centered temporal windows with overlap control and reduced redundancy.
+5. `Spatio-temporal modeling layer`: extract temporal features through the SlowFast branch and fuse them with pose information.
+6. `Clip-level classification head`: classify each clip into `normal`, `fall`, or `fighting`.
+7. `Integration with the fire branch`: merge human-action outputs with verified fire detections.
+8. `Temporal smoothing`: stabilize predictions and keep short persistence to reduce noisy frame-by-frame changes.
+9. `Post-processing and visualization`: render bounding boxes, labels, output video, and exported alert logs.
 
 ## Model Components
 
@@ -78,7 +85,7 @@ flowchart LR
 
 ## Experimental Results
 
-The metrics below were compiled from the training artifacts packaged in `FA25 FULL.zip/CodeTrain.zip` together with the project report.
+The metrics below were compiled from the training artifacts packaged in `FA25 FULL.zip/CodeTrain.zip` and kept consistent with the evaluation structure described in the project report.
 
 ### 1. Human action branch: SlowFast + Pose
 
@@ -128,30 +135,22 @@ Best checkpoint by `mAP@0.5:0.95`:
 
 ![Pose detector results](asset/readme/results/pose-results.png)
 
-## Dataset and External Resources
+## Dataset and Checkpoint Notes
 
-The submission package includes a dataset-link document inside `FA25 FULL.zip -> LinkDataSet.zip -> dataset.docx`.  
-Those links are reproduced here for convenience:
+Dataset links and public checkpoint links are intentionally omitted in this version of the README because they will be published separately.
 
-- SlowFast / action-recognition dataset: [Google Drive folder](https://drive.google.com/drive/folders/1bEaTlm3HRLjEe3Ju_6oeWuJHY5N3MvSD?usp=sharing)
-- YOLOv11 pose-detection dataset: [Google Drive folder](https://drive.google.com/drive/folders/16dSY5aajKi90Cv2LzdZrfz4OPVxlJTi8?usp=sharing)
-- Fire detection + CNN verification dataset: [Google Drive folder](https://drive.google.com/drive/folders/1YSqLaV_1y6EGQ_xT-Mm16t_lZH322z_W?usp=sharing)
+For now, this repository assumes the following local artifacts are available:
 
-### Weight files
+- `checkpoints/best_model_pose.pth`
+- `checkpoints/best_model_fire.pt`
+- `checkpoints/customyolov11m.pt`
+- `checkpoints/fire_red_cnn.pth`
+- `yolo11m-pose.pt`
 
-The trained checkpoints exist locally in the submission package and in the ignored `checkpoints/` folder, but large binary weights are not suitable for a normal Git commit.
+The full offline submission package is still preserved locally in:
 
-Recommended publication strategy for GitHub:
-
-- Keep source code in the repository
-- Upload model weights through `GitHub Releases`, `Google Drive`, or `Git LFS`
-- The current offline backup is stored in `FA25 FULL.zip -> checkpointsmodel.zip`
-- Keep the same filenames used by the codebase:
-  - `best_model_pose.pth`
-  - `best_model_fire.pt`
-  - `customyolov11m.pt`
-  - `fire_red_cnn.pth`
-  - `yolo11m-pose.pt`
+- `FA25 FULL.zip`
+- `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
 
 ## Project Structure
 
@@ -267,8 +266,8 @@ http://127.0.0.1:5000
 - The action branch is strongest on `fall` and `fighting`, but highly active normal scenes can still create confusion.
 - Occlusion, unusual viewpoints, and crowded scenes may reduce performance.
 - Alert logs are currently frame-dense; additional event-level consolidation would improve downstream reporting.
-- Large checkpoints such as `best_model_pose.pth` should be distributed externally instead of pushed directly to Git.
-- For a clean public GitHub repo, it is better to keep only source code, the `asset/` README images, and the report, while hosting datasets and checkpoints externally.
+- Large checkpoints such as `best_model_pose.pth` should not be pushed directly into a normal GitHub repository.
+- Dataset links and model-download links are intentionally left out here so they can be added later in your own release format.
 
 ## Tech Stack
 
