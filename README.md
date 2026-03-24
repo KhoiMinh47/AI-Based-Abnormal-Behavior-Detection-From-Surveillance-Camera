@@ -1,285 +1,452 @@
 # AI-Based Abnormal Behavior Detection from Surveillance Cameras
 
-> FA25 Capstone Project  
-> Real-time abnormal event detection for surveillance video using YOLOv11, SlowFast + Pose, and a Flask dashboard.
+This repository contains the packaged deliverables for the FPT University capstone **"AI-Based Abnormal Behavior Detection from Surveillance Cameras"**. The project focuses on building a practical AI surveillance pipeline that can automatically detect three high-risk events in CCTV video:
 
-![Python](https://img.shields.io/badge/Python-3.10-blue)
-![Flask](https://img.shields.io/badge/Backend-Flask-black)
-![PyTorch](https://img.shields.io/badge/Framework-PyTorch-red)
-![YOLOv11](https://img.shields.io/badge/Detection-YOLOv11-green)
-
-## Overview
-
-This project builds an end-to-end AI surveillance system for detecting abnormal events from uploaded video streams.  
-The deployed application combines object detection, pose estimation, temporal action recognition, and fire verification into a single dashboard-oriented workflow.
-
-The current system focuses on three main abnormal-event categories:
-
+- `Fire`
 - `Fall`
 - `Fighting`
-- `Fire`
 
-The application accepts a surveillance video, processes it frame by frame, produces an annotated output video, and exports alert logs in JSON format for later review.
+The system is described in detail in the project report `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`, and the deliverables are distributed mainly as root-level `.zip` packages. This README is written from that report and is intended to be detailed enough for GitHub readers, evaluators, and collaborators who want to understand both the research direction and the packaged project artifacts.
 
-The full academic report is available here: [AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf](AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf)
+## Executive summary
 
-## Key Features
+Modern surveillance systems generate a large amount of video, but manual monitoring is expensive, tiring, and easy to miss important events. This capstone proposes a hybrid AI pipeline that combines fast detection with deeper spatio-temporal reasoning:
 
-- Flask-based dashboard for video upload, processing status, statistics, and alert review
-- YOLOv11-based person detection and dedicated fire detection
-- YOLOv11 pose estimation for extracting human keypoints
-- SlowFast + Pose fusion model for abnormal human-action recognition
-- Optional MobileNetV3-based fire verification branch to reduce false positives
-- Output video rendering with bounding boxes, labels, and confidence scores
-- Alert export to `static/outputs/alerts_*.json`
-- Support for `mp4`, `avi`, `mov`, `mkv`, `flv`, and `wmv`
+- `YOLOv11` is used as the front-end trigger to scan frames quickly.
+- `YOLOv11 Pose + SlowFast` is used to analyze human behavior over short clips.
+- `YOLOv11 + MobileNetV3-Small` is used to detect and verify fire events.
+- A `Flask` dashboard is used to present alerts, processed video, and timeline-style outputs.
+
+The overall goal is not just to classify short clips in isolation, but to create a deployable abnormal-event detection workflow that is practical for real surveillance usage on a single `NVIDIA RTX 3060` workstation.
+
+## Problem statement
+
+The report frames three major surveillance challenges:
+
+1. Human operators cannot reliably watch many cameras at the same time for long periods.
+2. Dangerous events such as falls, fights, and fire are rare but important, so missing even a small number of cases is costly.
+3. Full-video deep analysis is expensive, so a realistic system needs a fast filtering mechanism before sending data to heavier models.
+
+To address this, the project uses a staged architecture where a fast detector identifies potentially relevant frames first, and deeper models are activated only when needed.
+
+## Project objectives
+
+According to the capstone report, the main objectives are:
+
+- Detect `Fire`, `Fall`, and `Fighting` in untrimmed surveillance videos.
+- Build a hybrid architecture that combines detection, pose, clip classification, and alert generation.
+- Improve robustness against visually confusing cases such as red clothes or bright lights being mistaken for fire.
+- Support practical deployment through a Flask dashboard and packaged checkpoints.
+- Achieve near real-time inference on consumer-grade GPU hardware.
+
+## System architecture
+
+The proposed solution is a two-branch hybrid architecture. One branch focuses on human behavior analysis, while the other focuses on environmental hazard monitoring.
+
+![System architecture](assets/readme/01-system-architecture.png)
+
+### Branch 1: Human behavior analysis
+
+This branch is responsible for distinguishing human actions such as `normal`, `fall`, and `fighting`.
+
+Pipeline idea:
+
+- `YOLOv11` detects people and identifies frames that are likely to be meaningful.
+- `YOLOv11 Pose` extracts 17 keypoints for detected people.
+- Short person-centered clips are sent into a `SlowFast R101 + Pose Encoder` model.
+- Temporal smoothing and alert logic are used to stabilize predictions before visualization.
+
+Why this matters:
+
+- Falls and fights are temporal events, not just single-frame appearance problems.
+- Pose-guided cropping helps the action model focus on body motion instead of background clutter.
+- The SlowFast design captures both semantic structure and rapid motion.
+
+### Branch 2: Fire monitoring
+
+This branch handles fire detection and verification.
+
+Pipeline idea:
+
+- `YOLOv11` first localizes candidate fire regions.
+- Cropped fire ROIs are passed into `MobileNetV3-Small`.
+- The CNN verifies whether the candidate really contains fire or is a visually similar non-fire object.
+
+Why this matters:
+
+- A detector alone can be biased by color and brightness.
+- The verification stage helps reduce false alarms caused by red shirts, reflections, or bright lights.
+- This makes the fire branch more reliable for practical alerting.
+
+## Figures from the report
+
+The following figures are rendered directly from the PDF report and included here to make the README self-contained.
+
+### Data preparation and modeling figures
+
+**Sample data with pose/detection preparation**
+
+![Sample data with pose detection](assets/readme/02-sample-data-pose-detection.png)
+
+**Frames and sequence analysis used for clip construction**
+
+![Frames and sequences analysis](assets/readme/03-frames-sequences-analysis.png)
+
+**Dual-pathway SlowFast mechanism**
+
+![SlowFast dual pathway](assets/readme/04-slowfast-dual-pathway.png)
+
+**Modified MobileNetV3-Small head for fire verification**
+
+![MobileNetV3 fire head](assets/readme/05-mobilenetv3-fire-head.png)
+
+These figures show how the project bridges raw video into model-ready inputs and why different model families are used for different event types.
+
+## Root package structure
+
+This project is currently organized primarily around packaged deliverables in the root directory. The key files are:
+
+| File | Purpose |
+|---|---|
+| `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf` | Full capstone report with methodology, experiments, results, limitations, and references |
+| `CodeApp.zip` | Deployable Flask application, runtime pipeline, static assets, templates, checkpoints, and test videos |
+| `CodeTrain.zip` | Training notebooks, training outputs, logs, result plots, and saved experiment artifacts |
+| `checkpointsmodel.zip` | Packaged trained model weights for deployment |
+| `LinkDataSet.zip` | Dataset reference package; contains `dataset.docx` with dataset information/link |
+| `final full bundle zip (*FULL.zip)` | All-in-one bundled submission package containing the core deliverables above |
+| `LinkCode&Dataset.txt` | Direct shared link used for project and dataset distribution |
+
+### What is inside each main zip
+
+#### `CodeApp.zip`
+
+The application package includes the runnable web app and the deployment-side model files. Key contents include:
+
+- `CodeApp/app/app.py`
+- `CodeApp/app/detect_track_action.py`
+- `CodeApp/app/requirements.txt`
+- `CodeApp/app/templates/dashboard.html`
+- `CodeApp/app/static/`
+- `CodeApp/app/checkpoints/`
+- `CodeApp/app/test_videos/`
+- `CodeApp/app/yolo11m-pose.pt`
+
+This package is the main runtime deliverable.
+
+#### `CodeTrain.zip`
+
+The training package contains the experiment notebooks and saved outputs for each model branch:
+
+- `TrainSlowFast/`
+- `TrainYolo11PoseDetection/`
+- `TrainYolo11FireDetection/`
+- `TrainCNNVerification/`
+
+Examples of included artifacts:
+
+- `SlowFast_Pose_Retrain.ipynb`
+- `Train_Fire_YOLOv11.ipynb`
+- `train_yolov11.ipynb`
+- `Fire_CNN_Classifier.ipynb`
+- training logs, confusion matrices, `results.csv`, and exported plots
+
+This package is the main research and reproducibility deliverable.
+
+#### `checkpointsmodel.zip`
+
+The checkpoint package contains the trained deployment weights:
+
+- `best_model_pose.pth`
+- `customyolov11m.pt`
+- `best_model_fire.pt`
+- `fire_red_cnn.pth`
+
+These are the key models needed to run the packaged application.
+
+#### `final full bundle zip (*FULL.zip)`
+
+This is the full bundled submission package. It contains:
+
+- `checkpointsmodel.zip`
+- `CodeApp.zip`
+- `CodeTrain.zip`
+- `Slide_Presentation.pdf`
+- `LinkDataSet.zip`
+- `Present_Order.pdf`
+- `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
+
+This file is the easiest way to preserve the entire capstone handoff in a single archive.
+
+## Experimental setup from the report
+
+The report describes the experimental environment as follows:
+
+- Hardware: `NVIDIA RTX 3060` with `12 GB VRAM`
+- Framework stack: `PyTorch`, `CUDA`, `cuDNN`
+- Optimization support: `Automatic Mixed Precision (AMP)`
+- Deployment target: a Flask-based dashboard running on the same practical workstation class
+
+### Data split strategy
+
+The project uses approximately:
+
+- `70%` training
+- `15%` validation
+- `15%` test
+
+The split is performed at the original video level to avoid leakage between train/validation/test subsets.
+
+### Human branch training details
+
+From the report, the SlowFast action branch uses:
+
+- `64-frame` RGB clips
+- input resolution around `224 x 224`
+- `AdamW` optimizer
+- cosine annealing warm restarts
+- gradient accumulation because of VRAM limits
+- up to `20 epochs` with early stopping
+- online augmentations such as horizontal flip, random erase, Mixup, and CutMix
+
+### Fire branch training details
+
+The fire branch uses a two-stage process:
+
+1. `YOLOv11` for fire object detection and localization.
+2. `MobileNetV3-Small` for binary fire/non-fire verification.
+
+The report emphasizes that this separation is important because a direct detector can still confuse fire with visually similar non-fire objects.
+
+## Quantitative results
+
+The report presents strong overall results for the full project:
+
+- Overall test accuracy: `93.66%`
+- Macro F1-score: `89.41%`
+- Human branch best validation accuracy: `78.26%`
+- Human branch best validation F1-score: `0.73`
+- Fire branch mAP@50: `0.8071`
+- Fire CNN validation accuracy: `99.93%`
+- Fire CNN loss stabilized near `0.0031`
+
+### Human branch training convergence
+
+**Binary cross-entropy loss across training**
+
+![SlowFast training loss](assets/readme/06-slowfast-training-loss.png)
+
+**Validation accuracy and F1 behavior**
+
+![SlowFast validation metrics](assets/readme/07-slowfast-validation-metrics.png)
+
+The report notes that the human-action model converged well and reached its best checkpoint in the later training stage. Validation loss remained close to training loss, suggesting that overfitting was controlled reasonably well.
+
+### Human branch confusion matrix
+
+![SlowFast confusion matrix](assets/readme/08-slowfast-confusion-matrix.png)
+
+Important observations from the report:
+
+- `Fall` detection reached `100%` class accuracy on the reported test samples.
+- `Fighting` reached `90.32%` accuracy.
+- `Normal` was the hardest class, with many active normal movements being confused as fighting.
+
+This behavior is discussed in the report as a safety-biased tendency: the model is more willing to over-warn than to ignore a possibly dangerous event.
+
+### Fire branch detection and verification results
+
+**YOLOv11 fire detection branch**
+
+![YOLO fire detection results](assets/readme/09-yolo-fire-detection-results.png)
+
+**CNN training curves for fire verification**
+
+![Fire CNN training curves](assets/readme/10-fire-cnn-training-curves.png)
+
+**Fire vs non-fire confusion matrix**
+
+![Fire CNN confusion matrix](assets/readme/11-fire-cnn-confusion-matrix.png)
+
+The report shows that the fire branch is one of the strongest parts of the system:
+
+- YOLOv11 achieved a strong detection score for fire localization.
+- The MobileNetV3 verification module helped filter misleading candidates.
+- The combined pipeline achieved extremely high fire/non-fire discrimination quality.
+
+## Success cases discussed in the report
+
+The report includes qualitative examples where the architecture works especially well.
+
+### Fire verification success case
+
+![Fire CNN success case](assets/readme/12-fire-cnn-success-case.png)
+
+This figure highlights one of the most important contributions of the system: reducing false alarms on fire-like objects. The verification CNN can reject non-fire objects that share similar color characteristics with flames.
+
+### SlowFast success case
+
+![SlowFast success case](assets/readme/13-slowfast-success-case.png)
+
+This example shows the system's ability to distinguish a real fall from a controlled bending motion. According to the report, pose-guided clip construction is an important reason this works better than a naive motion detector.
+
+## Failure modes discussed in the report
+
+The report also explicitly documents failure cases, which is useful for honest evaluation.
+
+### Fire CNN failure mode in early baseline behavior
+
+![Fire CNN failure case](assets/readme/14-fire-cnn-failure-case.png)
+
+An early failure mode showed that if negative samples are not diverse enough, the model can collapse into predicting fire too aggressively. This is why hard non-fire examples are important during training.
+
+### SlowFast active-normal confusion
+
+![SlowFast failure case](assets/readme/15-slowfast-failure-case.png)
+
+Fast normal actions such as rough play, running, or dancing may be misclassified as fighting because they share strong motion energy patterns.
+
+### Occlusion-induced miss
+
+![Occlusion failure case](assets/readme/16-occlusion-failure-case.png)
+
+This is a pipeline dependency issue: if the front-end detector misses the person because of heavy occlusion, the downstream action classifier never receives a useful clip.
 
 ## Demo
 
-| Fall Detection | Fire Detection | Fighting Detection |
-|---|---|---|
-| ![Fall demo](asset/readme/demo/fall-demo.png) | ![Fire demo](asset/readme/demo/fire-demo.png) | ![Fighting demo](asset/readme/demo/fighting-demo.png) |
+The following screenshots show the packaged Flask dashboard and several example detections from the local demo environment.
 
-## Pipeline Overview
+### Dashboard overview
 
-```mermaid
-flowchart LR
-    A["Input Surveillance Video"] --> B["YOLOv11 Person and Fire Detection"]
-    B --> C["Fire ROI Extraction and Verification"]
-    B --> D["Person-Based Abnormality Triggers"]
-    D --> E["Clip Generation and Buffering"]
-    E --> F["Dual-Pathway Feature Extraction (SlowFast)"]
-    E --> G["YOLOv11 Pose Estimation"]
-    F --> H["Clip-Level Classification Head"]
-    G --> H
-    C --> I["Integration with the Fire Branch"]
-    H --> I
-    I --> J["Temporal Smoothing and Persistence"]
-    J --> K["Post-Processing and Visualization"]
-    K --> L["Annotated Video + JSON Alerts + Dashboard"]
-```
+![Demo dashboard overview](assets/readme/17-demo-dashboard-overview.jpg)
 
-The pipeline below is aligned with the methodology and inference structure described in the PDF report, especially the sections on technical objectives, clip generation and buffering, spatio-temporal modeling, post-processing, and inference deployment.
+### Example detections
 
-### Pipeline steps from the report
+**Indoor fall detection**
 
-1. `YOLOv11 person and fire detection`: detect candidate human and fire regions from each input frame.
-2. `Fire ROI extraction and verification`: crop suspicious fire regions and validate them through the dedicated CNN verification branch.
-3. `Person-based abnormality triggers`: use tracked person detections to identify candidate abnormal-action segments.
-4. `Clip generation and buffering`: build trigger-centered temporal windows with overlap control and reduced redundancy.
-5. `Spatio-temporal modeling layer`: extract temporal features through the SlowFast branch and fuse them with pose information.
-6. `Clip-level classification head`: classify each clip into `normal`, `fall`, or `fighting`.
-7. `Integration with the fire branch`: merge human-action outputs with verified fire detections.
-8. `Temporal smoothing`: stabilize predictions and keep short persistence to reduce noisy frame-by-frame changes.
-9. `Post-processing and visualization`: render bounding boxes, labels, output video, and exported alert logs.
+![Indoor fall detection demo](assets/readme/18-demo-fall-indoor-alert.jpg)
 
-## Model Components
+**Outdoor fall detection**
 
-| Component | Role | Expected File |
-|---|---|---|
-| YOLOv11 custom detector | Person / abnormal object detection | `checkpoints/customyolov11m.pt` |
-| YOLOv11 pose model | Human keypoint extraction | `yolo11m-pose.pt` |
-| SlowFast + Pose model | `normal / fall / fighting` classification | `checkpoints/best_model_pose.pth` |
-| YOLO fire detector | Fire localization | `checkpoints/best_model_fire.pt` |
-| MobileNetV3 verifier | Fire / non-fire verification | `checkpoints/fire_red_cnn.pth` |
+![Outdoor fall detection demo](assets/readme/19-demo-fall-porch-alert.jpg)
 
-## Experimental Results
+**Fire detection**
 
-The metrics below were compiled from the training artifacts packaged in `FA25 FULL.zip/CodeTrain.zip` and kept consistent with the evaluation structure described in the project report.
+![Fire detection demo](assets/readme/20-demo-fire-alert.jpg)
 
-### 1. Human action branch: SlowFast + Pose
+## How to run the packaged application
 
-Test classification report:
+If you want to run the project from the packaged deliverables:
 
-| Class | Precision | Recall | F1-score | Support |
-|---|---|---|---|---|
-| Normal | 0.8696 | 0.6452 | 0.7407 | 31 |
-| Fall | 0.6000 | 1.0000 | 0.7500 | 3 |
-| Fighting | 0.7568 | 0.9032 | 0.8235 | 31 |
-| **Overall Accuracy** | - | - | **0.7846** | 65 |
-| **Macro Avg** | 0.7421 | 0.8495 | **0.7714** | 65 |
-| **Weighted Avg** | 0.8033 | 0.7846 | **0.7807** | 65 |
+### 1. Extract the required archives
 
-Best validation results from training summary:
+At minimum, extract:
 
-- Best validation F1: `0.7304` at epoch `14`
-- Best validation accuracy: `0.7826` at epoch `14`
+- `CodeApp.zip`
+- `checkpointsmodel.zip`
 
-### 2. Fire detection branch: YOLOv11
+If you want the full research/training side as well, also extract:
 
-Best checkpoint by `mAP@0.5:0.95`:
+- `CodeTrain.zip`
 
-| Precision | Recall | mAP@0.5 | mAP@0.5:0.95 | Best Epoch |
-|---|---|---|---|---|
-| 0.8306 | 0.7705 | 0.7990 | 0.5150 | 72 |
-
-### 3. Pose / person detector branch: YOLOv11
-
-Best checkpoint by `mAP@0.5:0.95`:
-
-| Precision | Recall | mAP@0.5 | mAP@0.5:0.95 | Best Epoch |
-|---|---|---|---|---|
-| 0.7827 | 0.7355 | 0.8211 | 0.6208 | 33 |
-
-## Evaluation Visuals
-
-### SlowFast + Pose training and diagnostics
-
-![Action training summary](asset/readme/results/action-training-summary.png)
-
-![Action confusion matrix](asset/readme/results/action-confusion-matrix.png)
-
-### YOLOv11 fire and pose training curves
-
-![Fire mAP analysis](asset/readme/results/fire-map-analysis.png)
-
-![Pose detector results](asset/readme/results/pose-results.png)
-
-## Dataset and Checkpoint Notes
-
-Dataset links and public checkpoint links are intentionally omitted in this version of the README because they will be published separately.
-
-For now, this repository assumes the following local artifacts are available:
-
-- `checkpoints/best_model_pose.pth`
-- `checkpoints/best_model_fire.pt`
-- `checkpoints/customyolov11m.pt`
-- `checkpoints/fire_red_cnn.pth`
-- `yolo11m-pose.pt`
-
-The full offline submission package is still preserved locally in:
-
-- `FA25 FULL.zip`
-- `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
-
-## Project Structure
-
-```text
-.
-|-- app.py
-|-- detect_track_action.py
-|-- requirements.txt
-|-- templates/
-|   `-- dashboard.html
-|-- static/
-|   |-- app.js
-|   |-- style.css
-|   `-- outputs/
-|-- outputs/
-|-- uploads/
-|-- checkpoints/              # local weights, ignored by git
-|-- asset/
-|   `-- readme/
-|       |-- demo/
-|       `-- results/
-|-- AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf
-`-- FA25 FULL.zip
-```
-
-## Setup Instructions
-
-### 1. Prerequisites
-
-- Python `3.10`
-- Windows or Linux environment
-- NVIDIA GPU recommended for practical inference speed
-- CUDA-compatible PyTorch installation recommended
-
-### 2. Clone the repository
+### 2. Go to the application folder
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository-folder>
+cd CodeApp/app
 ```
 
-### 3. Create and activate a virtual environment
+### 3. Create a virtual environment
 
 ```bash
 python -m venv .venv
 ```
 
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Linux / macOS:
+### 4. Activate the environment on Windows
 
 ```bash
-source .venv/bin/activate
+.venv\Scripts\activate
 ```
 
-### 4. Install dependencies
-
-The project already provides a `requirements.txt` file:
+### 5. Install dependencies
 
 ```bash
-pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Notes:
+Main libraries inside the app package include:
 
-- The current `requirements.txt` is prepared for a CUDA `11.8` PyTorch installation.
-- If you do not use CUDA, replace the first PyTorch lines with CPU-compatible packages before installing.
+- `Flask`
+- `Flask-CORS`
+- `torch`
+- `torchvision`
+- `ultralytics`
+- `opencv-python`
+- `imageio`
+- `pytorchvideo`
 
-### 5. Add model weights
+### 6. Make sure checkpoints are available
 
-Place the following files in the expected locations:
+The application expects these model files:
 
-```text
-checkpoints/best_model_pose.pth
-checkpoints/best_model_fire.pt
-checkpoints/customyolov11m.pt
-checkpoints/fire_red_cnn.pth
-yolo11m-pose.pt
-```
+- `best_model_pose.pth`
+- `customyolov11m.pt`
+- `best_model_fire.pt`
+- `fire_red_cnn.pth`
 
-### 6. Run the application
+These are already packaged in the deliverables.
+
+### 7. Run the dashboard
 
 ```bash
 python app.py
 ```
 
-Then open:
+### 8. Open the local interface
 
 ```text
-http://127.0.0.1:5000
+http://localhost:5000
 ```
 
-## How to Use
+## Current deliverable status
 
-1. Open the dashboard in your browser.
-2. Go to the `Upload Video` page.
-3. Upload a surveillance video.
-4. Wait for background processing to complete.
-5. Review:
-   - real-time processing preview
-   - output annotated video
-   - generated alerts
-   - statistics and summary charts
+From the release-package perspective, this project already includes:
 
-## Notes and Limitations
+- The full written capstone report
+- The runnable application package
+- The model checkpoints package
+- The training notebooks and experiment outputs
+- The full bundled final submission archive
 
-- The current implementation is optimized for research/demo use rather than production deployment.
-- The action branch is strongest on `fall` and `fighting`, but highly active normal scenes can still create confusion.
-- Occlusion, unusual viewpoints, and crowded scenes may reduce performance.
-- Alert logs are currently frame-dense; additional event-level consolidation would improve downstream reporting.
-- Large checkpoints such as `best_model_pose.pth` should not be pushed directly into a normal GitHub repository.
-- Dataset links and model-download links are intentionally left out here so they can be added later in your own release format.
+That makes the repository suitable not only as a code dump, but also as a documented academic-project handoff.
 
-## Tech Stack
+## Limitations
 
-- `Python`
-- `Flask`, `Flask-CORS`
-- `PyTorch`, `TorchVision`, `PyTorchVideo`
-- `Ultralytics YOLOv11`
-- `OpenCV`
-- `NumPy`
-- `ImageIO / FFmpeg`
-- `HTML`, `CSS`, `JavaScript`, `Chart.js`
+The report clearly acknowledges several limitations:
 
-## Acknowledgment
+- The pipeline depends heavily on the front-end detector.
+- Heavy occlusion, unusual viewpoints, and poor lighting still reduce reliability.
+- Action recognition remains sensitive to visually similar high-motion activities.
+- The system is practical, but not yet a fully polished commercial surveillance product.
 
-This repository accompanies the FA25 capstone work on AI-based abnormal behavior detection from surveillance footage, including the engineering implementation, training artifacts, evaluation plots, and project report.
+## Future work
+
+The report proposes several next steps:
+
+- Edge optimization and quantization for lighter deployment
+- RTSP/IP camera integration for continuous live monitoring
+- Multimodal fusion, especially audio cues, to improve confidence and reduce ambiguity
+- More robust handling of long-form temporal localization and difficult edge cases
+
+## Reference
+
+Primary source for this README:
+
+- `AI_Based_Abnormal_Behavior_Detection_from_Surveillance.pdf`
+
+Core packaged deliverables referenced here:
+
+- `CodeApp.zip`
+- `CodeTrain.zip`
+- `checkpointsmodel.zip`
+- `LinkDataSet.zip`
+- `final full bundle zip (*FULL.zip)`
+
