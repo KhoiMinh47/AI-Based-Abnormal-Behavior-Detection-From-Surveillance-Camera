@@ -38,7 +38,7 @@ The full academic report is available here: [AI_Based_Abnormal_Behavior_Detectio
 
 | Fall Detection | Fire Detection | Fighting Detection |
 |---|---|---|
-| ![Fall demo](assets/readme/demo/fall-demo.png) | ![Fire demo](assets/readme/demo/fire-demo.png) | ![Fighting demo](assets/readme/demo/fighting-demo.png) |
+| ![Fall demo](asset/readme/demo/fall-demo.png) | ![Fire demo](asset/readme/demo/fire-demo.png) | ![Fighting demo](asset/readme/demo/fighting-demo.png) |
 
 ## System Architecture
 
@@ -118,15 +118,15 @@ Best checkpoint by `mAP@0.5:0.95`:
 
 ### SlowFast + Pose training and diagnostics
 
-![Action training summary](assets/readme/results/action-training-summary.png)
+![Action training summary](asset/readme/results/action-training-summary.png)
 
-![Action confusion matrix](assets/readme/results/action-confusion-matrix.png)
+![Action confusion matrix](asset/readme/results/action-confusion-matrix.png)
 
 ### YOLOv11 fire and pose training curves
 
-![Fire mAP analysis](assets/readme/results/fire-map-analysis.png)
+![Fire mAP analysis](asset/readme/results/fire-map-analysis.png)
 
-![Pose detector results](assets/readme/results/pose-results.png)
+![Pose detector results](asset/readme/results/pose-results.png)
 
 ## Dataset and External Resources
 
@@ -169,7 +169,7 @@ Recommended publication strategy for GitHub:
 |-- outputs/
 |-- uploads/
 |-- checkpoints/              # local weights, ignored by git
-|-- assets/
+|-- asset/
 |   `-- readme/
 |       |-- demo/
 |       `-- results/
@@ -268,7 +268,7 @@ http://127.0.0.1:5000
 - Occlusion, unusual viewpoints, and crowded scenes may reduce performance.
 - Alert logs are currently frame-dense; additional event-level consolidation would improve downstream reporting.
 - Large checkpoints such as `best_model_pose.pth` should be distributed externally instead of pushed directly to Git.
-- For a clean public GitHub repo, it is better to keep only source code, README assets, and the report, while hosting datasets and checkpoints externally.
+- For a clean public GitHub repo, it is better to keep only source code, the `asset/` README images, and the report, while hosting datasets and checkpoints externally.
 
 ## Tech Stack
 
